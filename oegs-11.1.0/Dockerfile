@@ -1,5 +1,5 @@
 FROM tutum/centos:centos6
-MAINTAINER Eric Stiles <ets04uga@yahoo.com>
+MAINTAINER Ramnish Kalsi <ramnish.kalsi@gmail.com>
 
 #######################################
 # install necessary OS packages
@@ -26,6 +26,12 @@ ENV BASE_TMP_INSTALL /tmp
 ENV BASE_TMP_ENDECA_INSTALL $BASE_TMP_INSTALL/endeca
 ENV BASE_TMP_PACKAGE_INSTALL $BASE_TMP_ENDECA_INSTALL/packages
 
+# installer names 
+ENV MDEX_INSTALLER OCmdex6.5.1-Linux64_829811.sh
+ENV PS_INSTALLER OCplatformservices11.1.0-Linux64.bin
+ENV CAS_INSTALLER OCcas11.1.0-Linux64.sh
+
+
 # environment variables for endeca location
 ENV BASE_DIR /appl
 ENV BASE_ENDECA_DIR $BASE_DIR/endeca
@@ -36,7 +42,7 @@ ENV ENDECA_HTTP_SERVICE_PORT 8888
 ENV ENDECA_HTTP_SERVICE_SHUTDOWN_PORT 8090
 ENV ENDECA_CONTROL_SYSTEM_JCD_PORT 8088
 ENV RUN_EAC_CONTROLLER Y
-ENV ENDECA_MDEX_INSTALL_DIR $BASE_ENDECA_DIR/MDEX/6.4.1.2
+ENV ENDECA_MDEX_INSTALL_DIR $BASE_ENDECA_DIR/MDEX/6.5.1
 ENV INSTALL_REF_APPS Y
 
 # CAS silent install specific env variables
@@ -47,7 +53,7 @@ ENV CAS_HOST localhost
 #######################################
 # create directories for copying initial endeca packages
 RUN mkdir -p $BASE_TMP_PACKAGE_INSTALL && \
-    chmod -R 777 $BASE_TMP_ENDECA_INSTALL
+chmod -R 777 $BASE_TMP_ENDECA_INSTALL
 
 # directory for final install of endeca created as part of script directory
 RUN mkdir -p $SCRIPT_DIR
@@ -60,7 +66,7 @@ ADD $LOCAL_SCRIPTS/setup*.sh /
 ADD $LOCAL_SCRIPTS/start.sh $SCRIPT_DIR/
 ADD $LOCAL_SCRIPTS/shutdown.sh $SCRIPT_DIR/
 ADD $LOCAL_SCRIPTS/captureEndecaLogs.sh $SCRIPT_DIR/
-ADD $LOCAL_SCRIPTS/installDiscoverApp.sh $SCRIPT_DIR/
+#ADD $LOCAL_SCRIPTS/installDiscoverApp.sh $SCRIPT_DIR/
 
 #######################################
 # Set properties for scripts to be executable
@@ -76,40 +82,45 @@ RUN /setup.sh
 #
 #mdex_6.4.1.2.763315_x86_64pc-linux.sh
 #presAPI_6.4.1.2.763315_x86_64pc-linux.tgz
-ADD $LOCAL_TOOLS/V40319-01.zip $BASE_TMP_PACKAGE_INSTALL/V40319-01.zip
 
-#platformservices_614734339_x86_64pc-linux.sh
-ADD $LOCAL_TOOLS/V40324-01.zip $BASE_TMP_PACKAGE_INSTALL/V40324-01.zip
+# Guided search software
+# V46002-01.zip - Oracle Commerce MDEX Engine (6.5.1)
+# V45999-01.zip - Oracle Commerce Guided Search Platform Services (11.1.0)
+#	V46389-01.zip - Oracle Commerce Experience Manager Tools and Frameworks 11.1 for Linux
+# V46393-01.zip - Oracle Commerce Content Acquisition System (11.1.0)	
 
-#ToolsAndFrameworks
-ADD $LOCAL_TOOLS/V37716-01.zip $BASE_TMP_PACKAGE_INSTALL/V37716-01.zip
-
-#cas-3.1.2.1-x86_64pc-linux.RC2.sh
-ADD $LOCAL_TOOLS/V40311-01.zip $BASE_TMP_PACKAGE_INSTALL/V40311-01.zip
-
-#relevancy ranking tool
-#ADD $LOCAL_TOOLS/V31171-01.zip $BASE_TMP_PACKAGE_INSTALL/V31171-01.zip
+ADD $LOCAL_TOOLS/V46002-01.zip $BASE_TMP_PACKAGE_INSTALL/V46002-01.zip
+ADD $LOCAL_TOOLS/V45999-01.zip $BASE_TMP_PACKAGE_INSTALL/V45999-01.zip
+ADD $LOCAL_TOOLS/V46389-01.zip $BASE_TMP_PACKAGE_INSTALL/V46389-01.zip
+ADD $LOCAL_TOOLS/V46393-01.zip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip
 
 #######################################
 # Unzip all packages to get install scripts and files
-RUN unzip $BASE_TMP_PACKAGE_INSTALL/V40319-01.zip -d $BASE_TMP_ENDECA_INSTALL && \
-    unzip $BASE_TMP_PACKAGE_INSTALL/V40324-01.zip -d $BASE_TMP_ENDECA_INSTALL && \
-    unzip $BASE_TMP_PACKAGE_INSTALL/V40311-01.zip -d $BASE_TMP_ENDECA_INSTALL
-#RUN unzip $BASE_TMP_PACKAGE_INSTALL/V35744-01.zip -d $BASE_TMP_ENDECA_INSTALL
-#RUN unzip $BASE_TMP_PACKAGE_INSTALL/V31171-01.zip -d $BASE_TMP_ENDECA_INSTALL
+#MDEX
+RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46002-01.zip -d $BASE_TMP_ENDECA_INSTALL
+
+#PlatformServices
+RUN unzip $BASE_TMP_PACKAGE_INSTALL/V45999-01.zip -d $BASE_TMP_ENDECA_INSTALL
+
+#T&F 
+RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46389-01.zip -d $BASE_TMP_ENDECA_INSTALL
+
+#CAS
+RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
 # set permissions of scripts to run
 RUN chmod +x $BASE_TMP_INSTALL/**/*.sh
+RUN chmod +x $BASE_TMP_INSTALL/**/*.bin
 
 #######################################
 # MDEX INSTALLATION FOLLOWS
-RUN $BASE_TMP_ENDECA_INSTALL/mdex_6.4.1.2.763315_x86_64pc-linux.sh --target $BASE_DIR
+RUN $BASE_TMP_ENDECA_INSTALL/$MDEX_INSTALLER --target $BASE_DIR
 
 # copy mdex environment variables to .bashrc
 RUN /setup2.sh
 
 # set mdex environment variables for rest of install
-ENV ENDECA_MDEX_ROOT $BASE_ENDECA_DIR/MDEX/6.4.1.2
+ENV ENDECA_MDEX_ROOT $BASE_ENDECA_DIR/MDEX/6.5.1
 ENV PATH $ENDECA_MDEX_ROOT/bin:$PATH
 
 #######################################
@@ -124,20 +135,18 @@ RUN echo $ENDECA_HTTP_SERVICE_PORT > $BASE_TMP_ENDECA_INSTALL/platformservices-s
     echo $INSTALL_REF_APPS >> $BASE_TMP_ENDECA_INSTALL/platformservices-silent.txt
 
 # install platform services
-RUN $BASE_TMP_ENDECA_INSTALL/platformservices_614734339_x86_64pc-linux.sh --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/platformservices-silent.txt
+RUN $BASE_TMP_ENDECA_INSTALL/$PS_INSTALLER --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/platformservices-silent.txt
 
 RUN cat $BASE_ENDECA_DIR/PlatformServices/workspace/setup/installer_sh.ini >> $USER_HOME_DIR/.bashrc
 RUN source $USER_HOME_DIR/.bashrc
 
-#RUN SETUP
-
 # set platform services variables for rest of install
-ENV VERSION 6.1.4
-ENV BUILD_VERSION 6.1.4.734339
+ENV VERSION 11.1.0
+ENV BUILD_VERSION 11.1.0
 ENV ARCH_OS x86_64pc-linux
 ENV PRODUCT IAP
 ENV ENDECA_INSTALL_BASE $BASE_DIR
-ENV ENDECA_ROOT $BASE_ENDECA_DIR/PlatformServices/6.1.4
+ENV ENDECA_ROOT $BASE_ENDECA_DIR/PlatformServices/11.1.0
 ENV PERLLIB $ENDECA_ROOT/lib/perl:$ENDECA_ROOT/lib/perl/Control:$ENDECA_ROOT/perl/lib:$ENDECA_ROOT/perl/lib/site_perl:$PERLLIB
 ENV PERL5LIB $ENDECA_ROOT/lib/perl:$ENDECA_ROOT/lib/perl/Control:$ENDECA_ROOT/perl/lib:$ENDECA_ROOT/perl/lib/site_perl:$PERL5LIB
 ENV PATH $ENDECA_ROOT/bin:$ENDECA_ROOT/perl/bin:$ENDECA_ROOT/utilities:$PATH
@@ -149,14 +158,18 @@ ENV ENDECA_REFERENCE_DIR $BASE_ENDECA_DIR/PlatformServices/reference
 
 #######################################
 # TOOLS AND FRAMEWORKS INSTALLATION FOLLOWS
-RUN unzip $BASE_TMP_PACKAGE_INSTALL/V37716-01.zip -d $BASE_ENDECA_DIR
+# ALready unzipped above
+#RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46389-01.zip -d $BASE_TMP_ENDECA_INSTALL
+
+RUN $BASE_TMP_ENDECA_INSTALL/cd/Disk1/install/silent_install.sh silent_response.rsp ToolsAndFrameworks $BASE_ENDECA_DIR/ToolsAndFrameworks admin
 
 # set tools and frameworks variables for rest of install
-ENV ENDECA_TOOLS_ROOT $BASE_ENDECA_DIR/ToolsAndFrameworks/3.1.2/
-ENV ENDECA_TOOLS_CONF $BASE_ENDECA_DIR/ToolsAndFrameworks/3.1.2/server/workspace
+ENV ENDECA_TOOLS_ROOT $BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0
+ENV ENDECA_TOOLS_CONF $BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/server/workspace
+#
 
-RUN echo 'ENDECA_TOOLS_ROOT=$BASE_ENDECA_DIR/ToolsAndFrameworks/3.1.2/' >> $USER_HOME_DIR/.bashrc
-RUN echo 'ENDECA_TOOLS_CONF=$BASE_ENDECA_DIR/ToolsAndFrameworks/3.1.2/server/workspace' >> $USER_HOME_DIR/.bashrc
+RUN echo 'ENDECA_TOOLS_ROOT=$BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/' >> $USER_HOME_DIR/.bashrc
+RUN echo 'ENDECA_TOOLS_CONF=$BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/server/workspace' >> $USER_HOME_DIR/.bashrc
 RUN source $USER_HOME_DIR/.bashrc
 
 #######################################
@@ -166,27 +179,9 @@ RUN source $USER_HOME_DIR/.bashrc
 RUN echo $CAS_PORT > $BASE_TMP_ENDECA_INSTALL/cas-silent.txt && \
     echo $CAS_SHUTDOWN_PORT >> $BASE_TMP_ENDECA_INSTALL/cas-silent.txt && \
     echo $CAS_HOST >> $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
-
+#
 #install CAS
-RUN $BASE_TMP_ENDECA_INSTALL/cas-3.1.2.1-x86_64pc-linux.RC2.sh --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
-
-#######################################
-#
-# TODO TODO TODO TODO
-#
-# install relevancy evaluator
-#RUN mv /tmp/endeca/Endeca/Solutions $BASE_ENDECA_DIR
-
-#RUN cp $BASE_ENDECA_DIR/ToolsAndFrameworks/3.1.1/assembler/lib/endeca_navigation-6.4.0.jar $BASE_ENDECA_DIR/Solutions/relrankEvaluator-2.1.2/relrankEvaluator/WEB-INF/lib/endeca_navigation.jar
-
-# write context into relrankEvaluator.xml file
-#RUN /setup5.sh
-
-# place correct extensions file
-#ADD tools/ws-extensions.xml $BASE_ENDECA_DIR/ToolsAndFrameworks/3.1.1/server/workspace/conf/ws-extensions.xml
-
-# place correct menu items
-#ADD tools/ws-mainMenu.xml $BASE_ENDECA_DIR/ToolsAndFrameworks/3.1.1/server/workspace/conf/ws-mainMenu.xml
+RUN $BASE_TMP_ENDECA_INSTALL/$CAS_INSTALLER --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
 
 #######################################
 # create apps directory
@@ -205,4 +200,4 @@ RUN rm /setup*.sh
 ENV AUTHORIZED_KEYS **None**
 
 EXPOSE 22
-CMD ["/run.sh"]
+CMD ["/bin/bash"]
