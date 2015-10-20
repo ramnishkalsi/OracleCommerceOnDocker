@@ -1,6 +1,7 @@
 #!/bin/sh
 
 echo 'Adding endeca user'
-useradd -p $(openssl passwd -1 endeca) endeca
+useradd -p endeca endeca
+useradd -G sudo endeca
 
 source ./modsudoers.sh

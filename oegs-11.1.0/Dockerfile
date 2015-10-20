@@ -1,4 +1,4 @@
-FROM tutum/centos:centos6
+FROM oraclelinux:7.1
 MAINTAINER Ramnish Kalsi <ramnish.kalsi@gmail.com>
 
 #######################################
@@ -8,7 +8,8 @@ RUN yum -y install which && \
     yum -y install glibc.i686 && \
     yum -y install sudo && \
     yum -y install tar && \
-    yum -y install unzip.x86_64
+    yum -y install unzip.x86_64 && \
+    yum -y install openssl
 
 #######################################
 # environment variables
@@ -20,6 +21,7 @@ ENV USER_HOME_DIR /home/$USER
 # environment variable for local location
 ENV LOCAL_SCRIPTS scripts
 ENV LOCAL_TOOLS tools
+ENV SOFTWARE_LOCATION oegs-installers
 
 # environment variables for installables
 ENV BASE_TMP_INSTALL /tmp
@@ -61,12 +63,12 @@ RUN chmod -R 755 $SCRIPT_DIR
 
 #######################################
 # Copy script that creates unique password for root and other scripts
-ADD $LOCAL_SCRIPTS/modsudoers.sh /
-ADD $LOCAL_SCRIPTS/setup*.sh /
-ADD $LOCAL_SCRIPTS/start.sh $SCRIPT_DIR/
-ADD $LOCAL_SCRIPTS/shutdown.sh $SCRIPT_DIR/
-ADD $LOCAL_SCRIPTS/captureEndecaLogs.sh $SCRIPT_DIR/
-#ADD $LOCAL_SCRIPTS/installDiscoverApp.sh $SCRIPT_DIR/
+COPY $LOCAL_SCRIPTS/modsudoers.sh /
+COPY $LOCAL_SCRIPTS/setup*.sh /
+COPY $LOCAL_SCRIPTS/start.sh $SCRIPT_DIR/
+COPY $LOCAL_SCRIPTS/shutdown.sh $SCRIPT_DIR/
+COPY $LOCAL_SCRIPTS/captureEndecaLogs.sh $SCRIPT_DIR/
+#COPY $LOCAL_SCRIPTS/installDiscoverApp.sh $SCRIPT_DIR/
 
 #######################################
 # Set properties for scripts to be executable
@@ -89,39 +91,39 @@ RUN /setup.sh
 #	V46389-01.zip - Oracle Commerce Experience Manager Tools and Frameworks 11.1 for Linux
 # V46393-01.zip - Oracle Commerce Content Acquisition System (11.1.0)	
 
-ADD $LOCAL_TOOLS/V46002-01.zip $BASE_TMP_PACKAGE_INSTALL/V46002-01.zip
-ADD $LOCAL_TOOLS/V45999-01.zip $BASE_TMP_PACKAGE_INSTALL/V45999-01.zip
-ADD $LOCAL_TOOLS/V46389-01.zip $BASE_TMP_PACKAGE_INSTALL/V46389-01.zip
-ADD $LOCAL_TOOLS/V46393-01.zip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip
+#COPY $SOFTWARE_LOCATION/V46002-01.zip $BASE_TMP_PACKAGE_INSTALL/V46002-01.zip
+#COPY $SOFTWARE_LOCATION/V45999-01.zip $BASE_TMP_PACKAGE_INSTALL/V45999-01.zip
+COPY $SOFTWARE_LOCATION/V46389-01.zip $BASE_TMP_PACKAGE_INSTALL/V46389-01.zip
+#COPY $SOFTWARE_LOCATION/V46393-01.zip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip
 
 #######################################
 # Unzip all packages to get install scripts and files
-#MDEX
-RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46002-01.zip -d $BASE_TMP_ENDECA_INSTALL
+# MDEX
+# #RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46002-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
-#PlatformServices
-RUN unzip $BASE_TMP_PACKAGE_INSTALL/V45999-01.zip -d $BASE_TMP_ENDECA_INSTALL
+# PlatformServices
+# #RUN unzip $BASE_TMP_PACKAGE_INSTALL/V45999-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
 #T&F 
 RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46389-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
 #CAS
-RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip -d $BASE_TMP_ENDECA_INSTALL
+##RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
 # set permissions of scripts to run
-RUN chmod +x $BASE_TMP_INSTALL/**/*.sh
-RUN chmod +x $BASE_TMP_INSTALL/**/*.bin
+# RUN chmod +x $BASE_TMP_INSTALL/**/*.sh
+# RUN chmod +x $BASE_TMP_INSTALL/**/*.bin
 
 #######################################
 # MDEX INSTALLATION FOLLOWS
-RUN $BASE_TMP_ENDECA_INSTALL/$MDEX_INSTALLER --target $BASE_DIR
+# #RUN $BASE_TMP_ENDECA_INSTALL/$MDEX_INSTALLER --target $BASE_DIR
 
 # copy mdex environment variables to .bashrc
-RUN /setup2.sh
+# #RUN /setup2.sh
 
 # set mdex environment variables for rest of install
-ENV ENDECA_MDEX_ROOT $BASE_ENDECA_DIR/MDEX/6.5.1
-ENV PATH $ENDECA_MDEX_ROOT/bin:$PATH
+# #ENV ENDECA_MDEX_ROOT $BASE_ENDECA_DIR/MDEX/6.5.1
+# #ENV PATH $ENDECA_MDEX_ROOT/bin:$PATH
 
 #######################################
 # PLATFORM INSTALLATION FOLLOWS
@@ -135,10 +137,10 @@ RUN echo $ENDECA_HTTP_SERVICE_PORT > $BASE_TMP_ENDECA_INSTALL/platformservices-s
     echo $INSTALL_REF_APPS >> $BASE_TMP_ENDECA_INSTALL/platformservices-silent.txt
 
 # install platform services
-RUN $BASE_TMP_ENDECA_INSTALL/$PS_INSTALLER --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/platformservices-silent.txt
+# RUN $BASE_TMP_ENDECA_INSTALL/$PS_INSTALLER --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/platformservices-silent.txt
 
-RUN cat $BASE_ENDECA_DIR/PlatformServices/workspace/setup/installer_sh.ini >> $USER_HOME_DIR/.bashrc
-RUN source $USER_HOME_DIR/.bashrc
+# RUN cat $BASE_ENDECA_DIR/PlatformServices/workspace/setup/installer_sh.ini >> $USER_HOME_DIR/.bashrc
+# RUN source $USER_HOME_DIR/.bashrc
 
 # set platform services variables for rest of install
 ENV VERSION 11.1.0
@@ -158,15 +160,13 @@ ENV ENDECA_REFERENCE_DIR $BASE_ENDECA_DIR/PlatformServices/reference
 
 #######################################
 # TOOLS AND FRAMEWORKS INSTALLATION FOLLOWS
-# ALready unzipped above
-#RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46389-01.zip -d $BASE_TMP_ENDECA_INSTALL
-
-RUN $BASE_TMP_ENDECA_INSTALL/cd/Disk1/install/silent_install.sh silent_response.rsp ToolsAndFrameworks $BASE_ENDECA_DIR/ToolsAndFrameworks admin
+RUN chmod -R 755 $BASE_TMP_ENDECA_INSTALL/cd
+RUN chown -R endeca:endeca $BASE_TMP_ENDECA_INSTALL/cd
+RUN su -m endeca -c '$BASE_TMP_ENDECA_INSTALL/cd/Disk1/install/silent_install.sh $BASE_TMP_ENDECA_INSTALL/cd/Disk1/install/silent_response.rsp ToolsAndFrameworks $BASE_ENDECA_DIR/ToolsAndFrameworks admin'
 
 # set tools and frameworks variables for rest of install
 ENV ENDECA_TOOLS_ROOT $BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0
 ENV ENDECA_TOOLS_CONF $BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/server/workspace
-#
 
 RUN echo 'ENDECA_TOOLS_ROOT=$BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/' >> $USER_HOME_DIR/.bashrc
 RUN echo 'ENDECA_TOOLS_CONF=$BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/server/workspace' >> $USER_HOME_DIR/.bashrc
@@ -175,29 +175,29 @@ RUN source $USER_HOME_DIR/.bashrc
 #######################################
 # CAS INSTALLATION FOLLOWS
 
-#create silent install text file
-RUN echo $CAS_PORT > $BASE_TMP_ENDECA_INSTALL/cas-silent.txt && \
-    echo $CAS_SHUTDOWN_PORT >> $BASE_TMP_ENDECA_INSTALL/cas-silent.txt && \
-    echo $CAS_HOST >> $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
+# create silent install text file
+# RUN echo $CAS_PORT > $BASE_TMP_ENDECA_INSTALL/cas-silent.txt && \
+#    echo $CAS_SHUTDOWN_PORT >> $BASE_TMP_ENDECA_INSTALL/cas-silent.txt && \
+ #   echo $CAS_HOST >> $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
 #
-#install CAS
-RUN $BASE_TMP_ENDECA_INSTALL/$CAS_INSTALLER --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
+# install CAS
+# RUN $BASE_TMP_ENDECA_INSTALL/$CAS_INSTALLER --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
 
 #######################################
 # create apps directory
-RUN mkdir $BASE_ENDECA_DIR/apps
+# RUN mkdir $BASE_ENDECA_DIR/apps
 
 #######################################
 # set user and permissions to endeca
-RUN chown -R endeca.endeca $BASE_ENDECA_DIR/
-RUN chmod -R 755 $BASE_ENDECA_DIR/
+# RUN chown -R endeca.endeca $BASE_ENDECA_DIR/
+# RUN chmod -R 755 $BASE_ENDECA_DIR/
 
 #######################################
 # install is done start cleanup to remove initial packages
-RUN rm -rf $BASE_TMP_ENDECA_INSTALL
-RUN rm /setup*.sh
+# RUN rm -rf $BASE_TMP_ENDECA_INSTALL
+# RUN rm /setup*.sh
 
-ENV AUTHORIZED_KEYS **None**
+# ENV AUTHORIZED_KEYS **None**
 
 EXPOSE 22
 CMD ["/bin/bash"]
