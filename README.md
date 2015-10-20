@@ -1,4 +1,4 @@
-#Oracle Commerce environment Running On Docker
+# Oracle Commerce environment Running On Docker
 
 # Current Status - In progress
 
