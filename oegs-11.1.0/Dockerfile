@@ -80,50 +80,45 @@ RUN chmod +x $SCRIPT_DIR
 RUN /setup.sh
 
 #######################################
-# start copying across all endeca packages
-#
-#mdex_6.4.1.2.763315_x86_64pc-linux.sh
-#presAPI_6.4.1.2.763315_x86_64pc-linux.tgz
-
 # Guided search software
 # V46002-01.zip - Oracle Commerce MDEX Engine (6.5.1)
 # V45999-01.zip - Oracle Commerce Guided Search Platform Services (11.1.0)
 #	V46389-01.zip - Oracle Commerce Experience Manager Tools and Frameworks 11.1 for Linux
 # V46393-01.zip - Oracle Commerce Content Acquisition System (11.1.0)	
 
-#COPY $SOFTWARE_LOCATION/V46002-01.zip $BASE_TMP_PACKAGE_INSTALL/V46002-01.zip
-#COPY $SOFTWARE_LOCATION/V45999-01.zip $BASE_TMP_PACKAGE_INSTALL/V45999-01.zip
+COPY $SOFTWARE_LOCATION/V46002-01.zip $BASE_TMP_PACKAGE_INSTALL/V46002-01.zip
+COPY $SOFTWARE_LOCATION/V45999-01.zip $BASE_TMP_PACKAGE_INSTALL/V45999-01.zip
 COPY $SOFTWARE_LOCATION/V46389-01.zip $BASE_TMP_PACKAGE_INSTALL/V46389-01.zip
-#COPY $SOFTWARE_LOCATION/V46393-01.zip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip
+COPY $SOFTWARE_LOCATION/V46393-01.zip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip
 
 #######################################
 # Unzip all packages to get install scripts and files
 # MDEX
-# #RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46002-01.zip -d $BASE_TMP_ENDECA_INSTALL
+RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46002-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
 # PlatformServices
-# #RUN unzip $BASE_TMP_PACKAGE_INSTALL/V45999-01.zip -d $BASE_TMP_ENDECA_INSTALL
+RUN unzip $BASE_TMP_PACKAGE_INSTALL/V45999-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
 #T&F 
 RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46389-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
 #CAS
-##RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip -d $BASE_TMP_ENDECA_INSTALL
+RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
 # set permissions of scripts to run
-# RUN chmod +x $BASE_TMP_INSTALL/**/*.sh
-# RUN chmod +x $BASE_TMP_INSTALL/**/*.bin
+RUN chmod +x $BASE_TMP_INSTALL/**/*.sh
+RUN chmod +x $BASE_TMP_INSTALL/**/*.bin
 
 #######################################
 # MDEX INSTALLATION FOLLOWS
-# #RUN $BASE_TMP_ENDECA_INSTALL/$MDEX_INSTALLER --target $BASE_DIR
+RUN $BASE_TMP_ENDECA_INSTALL/$MDEX_INSTALLER --target $BASE_DIR
 
 # copy mdex environment variables to .bashrc
-# #RUN /setup2.sh
+RUN /setup2.sh
 
 # set mdex environment variables for rest of install
-# #ENV ENDECA_MDEX_ROOT $BASE_ENDECA_DIR/MDEX/6.5.1
-# #ENV PATH $ENDECA_MDEX_ROOT/bin:$PATH
+ENV ENDECA_MDEX_ROOT $BASE_ENDECA_DIR/MDEX/6.5.1
+ENV PATH $ENDECA_MDEX_ROOT/bin:$PATH
 
 #######################################
 # PLATFORM INSTALLATION FOLLOWS
@@ -137,10 +132,10 @@ RUN echo $ENDECA_HTTP_SERVICE_PORT > $BASE_TMP_ENDECA_INSTALL/platformservices-s
     echo $INSTALL_REF_APPS >> $BASE_TMP_ENDECA_INSTALL/platformservices-silent.txt
 
 # install platform services
-# RUN $BASE_TMP_ENDECA_INSTALL/$PS_INSTALLER --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/platformservices-silent.txt
+RUN $BASE_TMP_ENDECA_INSTALL/$PS_INSTALLER --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/platformservices-silent.txt
 
-# RUN cat $BASE_ENDECA_DIR/PlatformServices/workspace/setup/installer_sh.ini >> $USER_HOME_DIR/.bashrc
-# RUN source $USER_HOME_DIR/.bashrc
+RUN cat $BASE_ENDECA_DIR/PlatformServices/workspace/setup/installer_sh.ini >> $USER_HOME_DIR/.bashrc
+RUN source $USER_HOME_DIR/.bashrc
 
 # set platform services variables for rest of install
 ENV VERSION 11.1.0
@@ -160,8 +155,15 @@ ENV ENDECA_REFERENCE_DIR $BASE_ENDECA_DIR/PlatformServices/reference
 
 #######################################
 # TOOLS AND FRAMEWORKS INSTALLATION FOLLOWS
+# Allow Endeca access to the directories. T&F cannot be installed as a root user.
 RUN chmod -R 755 $BASE_TMP_ENDECA_INSTALL/cd
-RUN chown -R endeca:endeca $BASE_TMP_ENDECA_INSTALL/cd
+RUN chown -R endeca:endeca $BASE_TMP_ENDECA_INSTALL/
+RUN chown -R endeca:endeca $BASE_DIR/
+RUN chown -R endeca:endeca /home/endeca
+
+# Replace the dba UNIX group with endeca (as per our user)
+RUN sed -i "s/dba/endeca/" $BASE_TMP_ENDECA_INSTALL/cd/Disk1/install/silent_response.rsp 
+
 RUN su -m endeca -c '$BASE_TMP_ENDECA_INSTALL/cd/Disk1/install/silent_install.sh $BASE_TMP_ENDECA_INSTALL/cd/Disk1/install/silent_response.rsp ToolsAndFrameworks $BASE_ENDECA_DIR/ToolsAndFrameworks admin'
 
 # set tools and frameworks variables for rest of install
@@ -171,33 +173,36 @@ ENV ENDECA_TOOLS_CONF $BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/server/workspac
 RUN echo 'ENDECA_TOOLS_ROOT=$BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/' >> $USER_HOME_DIR/.bashrc
 RUN echo 'ENDECA_TOOLS_CONF=$BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/server/workspace' >> $USER_HOME_DIR/.bashrc
 RUN source $USER_HOME_DIR/.bashrc
+RUN /home/endeca/oraInventory/orainstRoot.sh
 
 #######################################
 # CAS INSTALLATION FOLLOWS
 
 # create silent install text file
-# RUN echo $CAS_PORT > $BASE_TMP_ENDECA_INSTALL/cas-silent.txt && \
-#    echo $CAS_SHUTDOWN_PORT >> $BASE_TMP_ENDECA_INSTALL/cas-silent.txt && \
- #   echo $CAS_HOST >> $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
+RUN echo $CAS_PORT > $BASE_TMP_ENDECA_INSTALL/cas-silent.txt && \
+    echo $CAS_SHUTDOWN_PORT >> $BASE_TMP_ENDECA_INSTALL/cas-silent.txt && \
+    echo $CAS_HOST >> $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
 #
 # install CAS
-# RUN $BASE_TMP_ENDECA_INSTALL/$CAS_INSTALLER --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
+RUN $BASE_TMP_ENDECA_INSTALL/$CAS_INSTALLER --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
 
 #######################################
 # create apps directory
-# RUN mkdir $BASE_ENDECA_DIR/apps
-
-#######################################
-# set user and permissions to endeca
-# RUN chown -R endeca.endeca $BASE_ENDECA_DIR/
-# RUN chmod -R 755 $BASE_ENDECA_DIR/
+RUN mkdir $BASE_ENDECA_DIR/apps
 
 #######################################
 # install is done start cleanup to remove initial packages
-# RUN rm -rf $BASE_TMP_ENDECA_INSTALL
-# RUN rm /setup*.sh
+RUN rm -rf $BASE_TMP_ENDECA_INSTALL
+RUN rm /setup*.sh
 
-# ENV AUTHORIZED_KEYS **None**
+
+#######################################
+# set user and permissions to endeca
+RUN chown -R endeca:endeca $BASE_ENDECA_DIR/
+RUN chmod -R 755 $BASE_ENDECA_DIR/
+
+
+ENV AUTHORIZED_KEYS **None**
 
 EXPOSE 22
 CMD ["/bin/bash"]

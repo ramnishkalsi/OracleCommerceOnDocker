@@ -29,6 +29,8 @@ If using local storage, copy the necessary Oracle supplied zip files to the oegs
 *	V46389-01.zip - Oracle Commerce Experience Manager Tools and Frameworks 11.1 for Linux
 * V46393-01.zip - Oracle Commerce Content Acquisition System (11.1.0)	
 
+http location - TODO
+
 ### Installation details
 
 OEGS is installed under /appl/endeca/.
