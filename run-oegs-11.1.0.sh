@@ -1,0 +1,1 @@
+docker run -it 	-p 8006:8006 -p 8888:8888 -p 15000:15000 -p 15002:15002 -p 15010:15010 --name oegs-11.1 ramnishkalsi/oegs:0.1 /bin/bash

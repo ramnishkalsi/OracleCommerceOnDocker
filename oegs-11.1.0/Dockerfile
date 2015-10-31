@@ -9,7 +9,8 @@ RUN yum -y install which && \
     yum -y install sudo && \
     yum -y install tar && \
     yum -y install unzip.x86_64 && \
-    yum -y install openssl
+    yum -y install openssl && \
+    yum -y install net-tools 
 
 #######################################
 # environment variables
@@ -63,17 +64,14 @@ RUN chmod -R 755 $SCRIPT_DIR
 
 #######################################
 # Copy script that creates unique password for root and other scripts
-COPY $LOCAL_SCRIPTS/modsudoers.sh /
-COPY $LOCAL_SCRIPTS/setup*.sh /
-COPY $LOCAL_SCRIPTS/start.sh $SCRIPT_DIR/
-COPY $LOCAL_SCRIPTS/shutdown.sh $SCRIPT_DIR/
-COPY $LOCAL_SCRIPTS/captureEndecaLogs.sh $SCRIPT_DIR/
-#COPY $LOCAL_SCRIPTS/installDiscoverApp.sh $SCRIPT_DIR/
+COPY $LOCAL_SCRIPTS/*.sh /
+COPY $LOCAL_SCRIPTS/*.xml /
 
 #######################################
 # Set properties for scripts to be executable
 RUN chmod +x /*.sh
 RUN chmod +x $SCRIPT_DIR
+
 
 #######################################
 #Run commands to create endeca user and modify sudoers
@@ -93,20 +91,21 @@ COPY $SOFTWARE_LOCATION/V46393-01.zip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip
 
 #######################################
 # Unzip all packages to get install scripts and files
+
 # MDEX
 RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46002-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
 # PlatformServices
 RUN unzip $BASE_TMP_PACKAGE_INSTALL/V45999-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
-#T&F 
+# T&F 
 RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46389-01.zip -d $BASE_TMP_ENDECA_INSTALL
 
-#CAS
-RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip -d $BASE_TMP_ENDECA_INSTALL
+# CAS
+RUN unzip $BASE_TMP_PACKAGE_INSTALL/V46393-01.zip -d $BASE_TMP_ENDECA_INSTALL 
 
 # set permissions of scripts to run
-RUN chmod +x $BASE_TMP_INSTALL/**/*.sh
+RUN chmod +x $BASE_TMP_INSTALL/**/*.sh 
 RUN chmod +x $BASE_TMP_INSTALL/**/*.bin
 
 #######################################
@@ -159,7 +158,7 @@ ENV ENDECA_REFERENCE_DIR $BASE_ENDECA_DIR/PlatformServices/reference
 RUN chmod -R 755 $BASE_TMP_ENDECA_INSTALL/cd
 RUN chown -R endeca:endeca $BASE_TMP_ENDECA_INSTALL/
 RUN chown -R endeca:endeca $BASE_DIR/
-RUN chown -R endeca:endeca /home/endeca
+RUN chown -R endeca:endeca $USER_HOME_DIR
 
 # Replace the dba UNIX group with endeca (as per our user)
 RUN sed -i "s/dba/endeca/" $BASE_TMP_ENDECA_INSTALL/cd/Disk1/install/silent_response.rsp 
@@ -170,10 +169,10 @@ RUN su -m endeca -c '$BASE_TMP_ENDECA_INSTALL/cd/Disk1/install/silent_install.sh
 ENV ENDECA_TOOLS_ROOT $BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0
 ENV ENDECA_TOOLS_CONF $BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/server/workspace
 
-RUN echo 'ENDECA_TOOLS_ROOT=$BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/' >> $USER_HOME_DIR/.bashrc
-RUN echo 'ENDECA_TOOLS_CONF=$BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/server/workspace' >> $USER_HOME_DIR/.bashrc
-RUN source $USER_HOME_DIR/.bashrc
-RUN /home/endeca/oraInventory/orainstRoot.sh
+RUN echo 'ENDECA_TOOLS_ROOT=$BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/' >> $USER_HOME_DIR/.bashrc && \
+echo 'ENDECA_TOOLS_CONF=$BASE_ENDECA_DIR/ToolsAndFrameworks/11.1.0/server/workspace' >> $USER_HOME_DIR/.bashrc && \
+source $USER_HOME_DIR/.bashrc && \
+$USER_HOME_DIR/oraInventory/orainstRoot.sh
 
 #######################################
 # CAS INSTALLATION FOLLOWS
@@ -187,20 +186,36 @@ RUN echo $CAS_PORT > $BASE_TMP_ENDECA_INSTALL/cas-silent.txt && \
 RUN $BASE_TMP_ENDECA_INSTALL/$CAS_INSTALLER --silent --target $BASE_DIR < $BASE_TMP_ENDECA_INSTALL/cas-silent.txt
 
 #######################################
-# create apps directory
+# Discover app
+
 RUN mkdir $BASE_ENDECA_DIR/apps
+
+RUN chown -R endeca:endeca $BASE_ENDECA_DIR/apps
+
+RUN su -m endeca -c '/installDiscoverApp.sh'
+
+#RUN $BASE_ENDECA_DIR/apps/Discover/control/initialize_services.sh
+
+#RUN $BASE_ENDECA_DIR/apps/Discover/control/load_baseline_test_data.sh
+
+#RUN $BASE_ENDECA_DIR/apps/Discover/control/baseline_update.sh
+
+#RUN $BASE_ENDECA_DIR/apps/Discover/control/promote_content.sh
+
+
 
 #######################################
 # install is done start cleanup to remove initial packages
-RUN rm -rf $BASE_TMP_ENDECA_INSTALL
-RUN rm /setup*.sh
 
+RUN rm -rf $BASE_TMP_ENDECA_INSTALL
+RUN	rm /setup*.sh 
+		
 
 #######################################
 # set user and permissions to endeca
-RUN chown -R endeca:endeca $BASE_ENDECA_DIR/
-RUN chmod -R 755 $BASE_ENDECA_DIR/
 
+
+#RUN chmod -R 755 $BASE_ENDECA_DIR/
 
 ENV AUTHORIZED_KEYS **None**
 

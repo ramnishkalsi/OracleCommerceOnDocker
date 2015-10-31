@@ -1,0 +1,31 @@
+<install app-name="Discover">
+<deployment-path>/appl/endeca/apps</deployment-path>
+<options>
+	<option name="casJarVersion">11.1.0</option>
+	<option name="casHost">localhost</option>
+	
+	<option name="eac-port">8888</option>
+	<option name="languageId">en</option>
+	<option name="host">localhost</option>
+	<option name="workbench-port">8006</option>
+	<option name="dgraph1Port">25000</option>
+	<option name="authoringDgraphPort">25002</option>
+	<option name="logserverPort">25010</option>
+	<option name="casPort">8500</option>
+	<option name="casRoot">/appl/endeca/CAS/11.1.0</option>
+	<option name="jpsConfigFileLocation">/appl/endeca/ToolsAndFrameworks/11.1.0/server/workspace/credential_store/jps-config.xml</option>
+	<option name="jps-config-location">/appl/endeca/ToolsAndFrameworks/11.1.0/server/workspace/credential_store/jps-config.xml</option>
+	
+	<option name="applicationConfigExportArchive">/appl/endeca/ToolsAndFrameworks/11.1.0/server/workspace/state/repository</option>
+	<option name="application-export-directory">/appl/endeca/ToolsAndFrameworks/11.1.0/server/workspace/state/repository</option>
+	
+	<option name="productionAppServerHost">localhost</option>
+	<option name="productionAppServerPort">8080</option>
+	<option name="previewHost">localhost</option>
+	<option name="previewPort">8080</option>
+	<option name="previewContextRoot">/</option>
+	<option name="userSegmentsHost">localhost</option>
+	<option name="userSegmentsPort">8080</option>
+
+</options>
+</install>
