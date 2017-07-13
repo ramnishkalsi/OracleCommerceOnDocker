@@ -11,10 +11,10 @@ then
 fi
 
 
-# MDEX Docker Build
-DOCKERFILE_LOC=oc-11.3.0/mdex
-IMAGE=ramnishkalsi/oc-mdex
-VERSION=0.1
+# Endeca build
+DOCKERFILE_LOC=endeca
+IMAGE=ramnishkalsi/endeca
+VERSION=11.3.1
 
 docker build -t ${IMAGE}:${VERSION} $DOCKERFILE_LOC | tee $BUILD_LOG_FILE || exit 1
 ID=$(tail -1 build.log | awk '{print $3;}')

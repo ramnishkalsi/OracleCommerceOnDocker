@@ -1,6 +1,6 @@
 search:
   image:
-    ramnishkalsi/oegs:0.1
+    ramnishkalsi/oc-ps:0.1
   ports:
     - "2222:22"
     - "8500:8500"
