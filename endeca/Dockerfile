@@ -1,23 +1,18 @@
 FROM oraclelinux:7.1
 MAINTAINER Ramnish Kalsi <ramnish.kalsi@gmail.com>
 
-#######################################
-#            ENV VARIABLES            #
-#######################################
+# ENV VARIABLES
 ENV ZIP_MDEX V861206-01.zip
 ENV ZIP_PS  V861203-01.zip
 ENV ZIP_TF V861200-01.zip
 ENV ZIP_CAS V861198-01.zip
 ENV MDEX_VERSION 11.3.0
 
-
 # HOST locations
 ENV HOST_DIR /tmp
 ENV HOST_DIR_INSTALLERS oc11_3-installers
 ENV HOST_DIR_SCRIPTS scripts
 ENV HOST_DIR_TOOLS tools
-#ENV HOST_DIR_INSTALL_DIR_ENDECA /$HOST_INSTALL_DIR/endeca
-#ENV HOST_INSTALL_DIR_ENDECA_PACKAGES /$HOST_INSTALL_DIR_ENDECA/packages
 
 # VM locations
 ENV VM_DIR /appl
@@ -26,7 +21,6 @@ ENV VM_DIR_ENDECA_SCRIPTS /appl/endeca/bin
 ENV VM_DIR_SCRIPTS scripts
 ENV VM_DIR_TMP /tmp
 ENV USER_HOME_DIR /home/endeca
-
 
 # install necessary OS packages
 RUN yum -y install which && \
@@ -38,36 +32,21 @@ RUN yum -y install which && \
     yum -y install openssl && \
     yum -y install net-tools
 
-# create directories for copying initial endeca packages
 RUN mkdir -p ${VM_DIR_TMP} && chmod -R 644 ${VM_DIR_TMP}
-
-# directory for final install of endeca created as part of script directory - upto scripts so all hierarchy is created
 RUN mkdir -p ${VM_DIR_ENDECA_SCRIPTS} && chmod -R 755 ${VM_DIR_ENDECA_SCRIPTS}
-
-#######################################
-# Copy script that creates unique password for root and other scripts
 COPY ${HOST_DIR_SCRIPTS}/*.sh /
 COPY ${HOST_DIR_SCRIPTS}/*.xml /
-
-#######################################
-# Set properties for scripts to be executable
 RUN chmod +x /*.sh
-
-#######################################
-# Run commands to create endeca user and modify sudoers
 RUN /setup.sh
 
+#######################################
+# 1. MDEX INSTALLATION
+ENV MDEX_INSTALLER OCmdex11.3.0-Linux64_1186050.bin
+
 COPY $HOST_DIR_INSTALLERS/$ZIP_MDEX ${VM_DIR_TMP}/$ZIP_MDEX
-
-#######################################
-# Unzip all packages to get install scripts and files
-RUN unzip ${VM_DIR_TMP}/${ZIP_MDEX} -d $VM_DIR_TMP
-
-# set permissions on installer
-RUN chmod +x /tmp/OCmdex11.3.0-Linux64_1186050.bin
-
-#######################################
-# 1. MDEX INSTALLATION FOLLOWS
+RUN unzip $VM_DIR_TMP/$ZIP_MDEX -d $VM_DIR_TMP
+RUN chmod +x $VM_DIR_TMP/$MDEX_INSTALLER
+COPY ${HOST_DIR_SCRIPTS}/mdex_response.properties /.
 RUN $VM_DIR_TMP/$MDEX_INSTALLER -i silent -f /mdex_response.properties
 RUN /setup2.sh
 ENV ENDECA_MDEX_ROOT ${VM_DIR_ENDECA}/MDEX/${MDEX_VERSION}
@@ -75,9 +54,11 @@ ENV PATH ${ENDECA_MDEX_ROOT}/bin:$PATH
 
 # 2: Platform services
 ENV PS_INSTALLER OCplatformservices11.3.0-Linux64.bin 
+
 COPY $HOST_DIR_INSTALLERS/$ZIP_PS  $VM_DIR_TMP/.
 RUN unzip $VM_DIR_TMP/$ZIP_PS -d $VM_DIR_TMP
-RUN chmod +X /tmp/$PS_INSTALLER
+RUN chmod +x /tmp/$PS_INSTALLER
+COPY ${HOST_DIR_SCRIPTS}/ps_response.properties /.
 RUN $VM_DIR_TMP/$PS_INSTALLER -i silent -f /ps_response.properties
 RUN cat ${VM_DIR_ENDECA}/PlatformServices/workspace/setup/installer_sh.ini >> ${USER_HOME_DIR}/.bashrc
 RUN source ${USER_HOME_DIR}/.bashrc
