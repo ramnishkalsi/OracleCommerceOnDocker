@@ -1,7 +1,7 @@
 <install app-name="Discover">
 <deployment-path>/appl/endeca/apps</deployment-path>
 <options>
-	<option name="casJarVersion">11.1.0</option>
+	<option name="casJarVersion">11.3.0</option>
 	<option name="casHost">localhost</option>
 	
 	<option name="eac-port">8888</option>
@@ -12,12 +12,12 @@
 	<option name="authoringDgraphPort">25002</option>
 	<option name="logserverPort">25010</option>
 	<option name="casPort">8500</option>
-	<option name="casRoot">/appl/endeca/CAS/11.1.0</option>
-	<option name="jpsConfigFileLocation">/appl/endeca/ToolsAndFrameworks/11.1.0/server/workspace/credential_store/jps-config.xml</option>
+	<option name="casRoot">/appl/endeca/CAS/11.3.0</option>
+	<option name="jpsConfigFileLocation">/appl/endeca/ToolsAndFrameworks/11.3.0/server/workspace/credential_store/jps-config.xml</option>
 	<option name="jps-config-location">/appl/endeca/ToolsAndFrameworks/11.1.0/server/workspace/credential_store/jps-config.xml</option>
 	
-	<option name="applicationConfigExportArchive">/appl/endeca/ToolsAndFrameworks/11.1.0/server/workspace/state/repository</option>
-	<option name="application-export-directory">/appl/endeca/ToolsAndFrameworks/11.1.0/server/workspace/state/repository</option>
+	<option name="applicationConfigExportArchive">/appl/endeca/ToolsAndFrameworks/11.3.0/server/workspace/state/repository</option>
+	<option name="application-export-directory">/appl/endeca/ToolsAndFrameworks/11.3.0/server/workspace/state/repository</option>
 	
 	<option name="productionAppServerHost">localhost</option>
 	<option name="productionAppServerPort">8080</option>

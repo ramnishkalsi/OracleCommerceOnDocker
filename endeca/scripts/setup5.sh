@@ -1,0 +1,1 @@
+echo "<Context path='/relrankEvaluator' docBase='/appl/endeca/Solutions/relrankEvaluator-2.1.2/relrankEvaluator' debug='0' privileged='false' />" > /appl/endeca/ToolsAndFrameworks/11.3.0/server/workspace/conf/Standalone/localhost/relrankEvaluator.xml
