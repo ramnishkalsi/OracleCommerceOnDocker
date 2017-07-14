@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Oracle Endeca CAS 
+#
+# chkconfig: 345 93 23
+# description: Oracle Endeca CAS Services
+#
+#    $ /sbin/chkconfig --add init-endeca-cas
+#
+################################################################################
+
+ENDECA_USER=endeca
+
+source /home/endeca/.bashrc
+
+usage() {
+  echo "Usage: ${0} (start|stop)"
+}
+
+case "${1}" in
+  start)
+    /bin/su - "${ENDECA_USER}" -c "/appl/endeca/CAS/11.3.0/bin/cas-service.sh"
+    ;;
+  stop)
+    /bin/su - "${ENDECA_USER}" -c "/appl/endeca/CAS/11.3.0/bin/cas-service-shutdown.sh"
+    ;;
+  *)
+    usage
+    exit 2
+esac
+
+exit $?
