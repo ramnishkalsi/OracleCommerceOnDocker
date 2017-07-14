@@ -1,0 +1,1 @@
+docker run -it -p 8006:8006 -p 8888:8888 -p 15000:15000 -p 15002:15002 -p 15010:15010 --name endeca-11.3 ramnishkalsi/endeca:11.3.1 /bin/bash
