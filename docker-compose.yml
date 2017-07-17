@@ -1,7 +1,0 @@
-search:
-  image:
-    ramnishkalsi/oc-ps:0.1
-  ports:
-    - "2222:22"
-    - "8500:8500"
-    - "8888:8888"

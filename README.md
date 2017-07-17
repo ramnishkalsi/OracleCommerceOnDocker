@@ -27,13 +27,10 @@ If using local storage, copy the necessary Oracle supplied zip files to endeca/o
 http location - TODO
 
 ### Installation details
-
 Endeca is installed under /appl/endeca/.
 
 ### How do I build the container ?
-
 Run ./build-oc.sh shell script and watch the magic happen.
 
 ### How do I run the container ? - todo
-
 Run ./run-oc.sh
