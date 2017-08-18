@@ -13,7 +13,8 @@ RUN yum -y install which && \
     yum -y install unzip.x86_64 && \
     yum -y install openssl && \
     yum -y install net-tools && \
-    yum -y install deltarpm
+    yum -y install deltarpm && \
+    yum -y install wget
 
 RUN mkdir -p $VM_DIR_TMP &&  \
     chmod -R 644 $VM_DIR_TMP && \
@@ -25,7 +26,6 @@ COPY $HOST_DIR_SCRIPTS/*  /
 COPY $HOST_DIR_INSTALLERS/*.zip "$VM_DIR_TMP"
 
 RUN chmod +x /*.sh && /setup.sh
-
 
 #######################################
 # MDEX
