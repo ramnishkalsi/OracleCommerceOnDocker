@@ -14,7 +14,9 @@ RUN yum -y install which && \
     yum -y install openssl && \
     yum -y install net-tools && \
     yum -y install deltarpm && \
-    yum -y install wget
+    yum -y install wget && \
+    yum -y install git
+    
 
 RUN mkdir -p $VM_DIR_TMP &&  \
     chmod -R 644 $VM_DIR_TMP && \
