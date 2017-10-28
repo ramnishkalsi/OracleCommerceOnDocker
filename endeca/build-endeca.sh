@@ -2,10 +2,12 @@
 
 start=`date +%s`
 
+BUILD_HOME=/Users/ramnishkalsi/docker-builds/OracleCommerceOnDocker
+
 set -o pipefail
 
 # Build log file
-BUILD_LOG_FILE=/tmp/build.log
+BUILD_LOG_FILE=$BUILD_HOME/tmp/build-endeca.log
 
 if [ -e $BUILD_LOG_FILE ]
 then
@@ -13,9 +15,9 @@ then
 fi
 
 # Endeca build
-DOCKERFILE_LOC=endeca
+DOCKERFILE_LOC=.
 IMAGE=ramnishkalsi/endeca
-VERSION=11.3.1
+VERSION=0.5
 
 docker build -t ${IMAGE}:${VERSION} $DOCKERFILE_LOC | tee $BUILD_LOG_FILE || exit 1
 
