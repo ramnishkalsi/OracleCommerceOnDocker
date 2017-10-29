@@ -5,7 +5,9 @@ MAINTAINER Ramnish Kalsi <ramnish.kalsi@gmail.com>
 ENV ZIP_MDEX="V861206-01.zip" ZIP_PS="V861203-01.zip" ZIP_TF="V861200-01.zip" ZIP_CAS="V861198-01.zip" MDEX_INSTALLER="OCmdex11.3.0-Linux64_1186050.bin" PS_INSTALLER="OCplatformservices11.3.0-Linux64.bin" CAS_INSTALLER="OCcas11.3.0-Linux64.bin" MDEX_VERSION="11.3.0" TF_VERSION="11.3.0" HOST_DIR="/tmp" HOST_DIR_INSTALLERS="software" HOST_DIR_SCRIPTS="scripts" HOST_DIR_TOOLS="tools" VM_DIR="/appl" VM_DIR_ENDECA="/appl/endeca" VM_DIR_ENDECA_SCRIPTS="/appl/endeca/bin" VM_DIR_SCRIPTS="scripts" VM_DIR_TMP="/tmp/" USER_HOME_DIR="/home/endeca" ENDECA_MDEX_ROOT="$VM_DIR_ENDECA/MDEX/$MDEX_VERSION" PATH="$ENDECA_MDEX_ROOT/bin:$PATH" ENDECA_TOOLS_ROOT="$VM_DIR_ENDECA/ToolsAndFrameworks/$TF_VERSION" ENDECA_TOOLS_CONF="$VM_DIR_ENDECA/ToolsAndFrameworks/$TF_VERSION/server/workspace" 
 
 # install necessary OS packages
-RUN yum -y install which && \
+RUN yum -y install deltarpm && \
+RUN yum -y install deltarpm && \
+    yum -y install which && \
     yum -y install libaio && \
     yum -y install glibc.i686 && \
     yum -y install sudo && \
@@ -14,8 +16,8 @@ RUN yum -y install which && \
     yum -y install openssl && \
     yum -y install net-tools && \
     yum -y install wget && \
-    yum -y install curl && \
-    yum -y install deltarpm
+    yum -y install curl
+    
 
 RUN mkdir -p $VM_DIR_TMP &&  \
     chmod -R 644 $VM_DIR_TMP && \

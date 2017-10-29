@@ -2,9 +2,16 @@
 
 echo "cleaning up ..."
 
+# Delete containers
+
+result=`docker ps -a -q -f status=created`
+if [[ -n "$result" ]]; then
+  docker rm -v $(docker ps -a -q -f status=created)
+fi  
+
 result=`docker ps -a -q -f status=exited`
 if [[ -n "$result" ]]; then
-  docker rm -v $(docker ps -a -f -q status=exited)
+  docker rm -v $(docker ps -a -q -f status=exited)
 fi  
 
 # delete dangling images
