@@ -6,6 +6,7 @@ ENV ZIP_MDEX="V861206-01.zip" ZIP_PS="V861203-01.zip" ZIP_TF="V861200-01.zip" ZI
 
 # install necessary OS packages
 RUN yum -y install which && \
+    yum -y install deltarpm && \
     yum -y install libaio && \
     yum -y install glibc.i686 && \
     yum -y install sudo && \
